@@ -1,0 +1,232 @@
+version: "3.8"
+
+services:
+  eureka-server:
+    build:
+      context: ./ServeurEureka
+      dockerfile: Dockerfile
+    restart: always
+    container_name: eureka-container
+    image: eureka-image
+    ports:
+      - "8761:8761"
+    networks:
+      - bored-network
+
+  dotnet-service:
+    container_name: dotnet-container
+    image: dotnet-image
+    build:
+      context: ./EMP.EventShare/EMP.EventShare.Api
+      dockerfile: Dockerfile
+    depends_on:
+      - eureka-server
+      - dotnetDB
+    environment:
+      - ConnectionStrings_DefaultConnection = Server=dotnetDB;Port=5432;Database=app-dotnet;User Id=postgres;Password=ouniouni@*@;
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+    networks:
+      - bored-network
+    restart: always
+
+  dotnetDB:
+    container_name: dotnetDB-container
+    image: postgres
+    restart: always
+    networks:
+      - bored-network
+    environment:
+      POSTGRES_PASSWORD: ouniouni@*@
+      POSTGRES_DB: app-dotnet
+      POSTGRES_USER: postgres
+
+  tachesDB:
+    container_name: tachesDB-container
+    image: mysql
+    networks:
+      - bored-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=testclienttache
+    restart: always
+
+  projetDB:
+    container_name: projetDB-container
+    image: mysql
+    networks:
+      - bored-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=aiaiiaia
+    restart: always
+
+  congeDB:
+    container_name: congeDB-container
+    image: mysql
+    networks:
+      - bored-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=complaintmanagment
+    restart: always
+
+  complainBD:
+    container_name: complainBD-container
+    image: mysql
+    networks:
+      - bored-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=Hedilll
+    restart: always
+
+  taches-service:
+    build:
+      context: ./Gestion_Taches
+      dockerfile: Dockerfile
+    container_name: taches-service-container
+    image: taches-service-image
+    restart: always
+    networks:
+      - bored-network
+    depends_on:
+      - tachesDB
+      - eureka-server
+    environment:
+      - spring.datasource.url=jdbc:mysql://tachesDB:3306/testclienttache?useUnicode=true&useJDBCCompliantTimezoneShift=true&createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      - spring.datasource.username=root
+      - spring.datasource.password=123456
+      - spring.jpa.show-sql=true
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+
+  projet-service:
+    build:
+      context: ./Gestion_Projet
+      dockerfile: Dockerfile
+    container_name: projet-container
+    image: projet-image
+    restart: always
+    networks:
+      - bored-network
+    depends_on:
+      - projetDB
+      - eureka-server
+    environment:
+      - spring.datasource.url=jdbc:mysql://projetDB:3306/aiaiiaia?useUnicode=true&useJDBCCompliantTimezoneShift=true&createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      - spring.datasource.username=root
+      - spring.datasource.password=123456
+      - spring.jpa.show-sql=true
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+
+  conge-service:
+    build:
+      context: ./gestion_conges
+      dockerfile: Dockerfile
+    container_name: conge-container
+    image: conge-image
+    restart: always
+    networks:
+      - bored-network
+    depends_on:
+      - congeDB
+      - eureka-server
+    environment:
+      - spring.datasource.url=jdbc:mysql://congeDB:3306/complaintmanagment?useUnicode=true&useJDBCCompliantTimezoneShift=true&createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      - spring.datasource.username=root
+      - spring.datasource.password=123456
+      - spring.jpa.show-sql=true
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+
+  stage-service:
+    build:
+      context: ./gestion_de_stage
+      dockerfile: Dockerfile
+    container_name: stage-container
+    image: stage-image
+    restart: always
+    networks:
+      - bored-network
+    depends_on:
+      - eureka-server
+    environment:
+      - spring.datasource.url=jdbc:h2:mem:gestion_stage_bd
+      - spring.datasource.driverClassName=org.h2.Driver
+      - spring.datasource.username=microservice
+      - spring.datasource.password=microservice
+      - spring.h2.console.enabled=true
+      - spring.jpa.show-sql=true
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+
+  complain-service:
+    build:
+      context: ./ComplaintManagment
+      dockerfile: Dockerfile
+    container_name: complain-container
+    image: complain-image
+    restart: always
+    networks:
+      - bored-network
+    depends_on:
+      - complainBD
+      - eureka-server
+    environment:
+      - spring.datasource.url=jdbc:mysql://complainBD:3306/Hedilll?useUnicode=true&useJDBCCompliantTimezoneShift=true&createDatabaseIfNotExist=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      - spring.datasource.username=root
+      - spring.datasource.password=123456
+      - spring.jpa.show-sql=true
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+
+  api-gateway:
+    build:
+      context: ./Getway-service
+      dockerfile: Dockerfile
+    container_name: api-gateway-container
+    image: api-gateway-image
+    restart: always
+    networks:
+      - bored-network
+    depends_on:
+      - eureka-server
+      - taches-service
+      - projet-service
+      - conge-service
+      - complain-service
+      - stage-service
+      - dotnet-service
+    ports:
+      - 8051:8051
+
+    environment:
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+      SPRING_CLOUD_GATEWAY_ROUTES_0_ID: taches-service
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://taches-service:8890
+      SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: Path=/tache/**
+      SPRING_CLOUD_GATEWAY_ROUTES_1_ID: projet-service
+      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: http://projet-service:8898
+      SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0: Path=/projet/**
+      SPRING_CLOUD_GATEWAY_ROUTES_2_ID: conge-service
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://conge-service:8074
+      SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0: Path=/conge/**
+      SPRING_CLOUD_GATEWAY_ROUTES_3_ID: dotnet-service
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://dotnet-service:80
+      SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0: Path=/api/Event/**
+      SPRING_CLOUD_GATEWAY_ROUTES_4_ID: complain-service
+      SPRING_CLOUD_GATEWAY_ROUTES_4_URI: http://complain-service:8030
+      SPRING_CLOUD_GATEWAY_ROUTES_4_PREDICATES_0: Path=/complaint/**
+      SPRING_CLOUD_GATEWAY_ROUTES_5_ID: stage-service
+      SPRING_CLOUD_GATEWAY_ROUTES_5_URI: http://stage-service:2020
+      SPRING_CLOUD_GATEWAY_ROUTES_5_PREDICATES_0: Path=/stage/**
+
+networks:
+  bored-network:
+    name: bored-network

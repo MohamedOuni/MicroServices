@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "BZYPRIbQq8GE9TcojIeW9iC53Jxcp32bxPqqtFynkKw=",
+  "Source": "EMP.EventShare.Api",
+  "BasePath": "_content/EMP.EventShare.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
